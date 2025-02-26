@@ -1,7 +1,6 @@
 from sortedcontainers import SortedDict
 from enum import Enum
 
-import visualizations
 from util import DoublyLinkedList
 
 
@@ -97,13 +96,17 @@ class OrderBookBinary:
                 self.remove_order(current_buy_order.value.order_id)
                 if buy_order_queue.head is None:
                     highest_buy_price, buy_order_queue = self.buy_orders.peekitem(-1) if self.buy_orders else (None, None)
-                    current_buy_order = buy_order_queue.head
+                if buy_order_queue is None:
+                    break
+                current_buy_order = buy_order_queue.head
             elif current_buy_order.value.quantity >= current_sell_order.value.quantity:
                 current_buy_order.value.quantity -= current_sell_order.value.quantity
                 self.remove_order(current_sell_order.value.order_id)
                 if sell_order_queue.head is None:
                     lowest_sell_price, sell_order_queue = self.sell_orders.peekitem(0) if self.sell_orders else (None, None)
-                    current_sell_order = sell_order_queue.head
+                if sell_order_queue is None:
+                    break
+                current_sell_order = sell_order_queue.head
             else:
                 raise Exception("Shouldn't happen")
 
@@ -138,35 +141,15 @@ class OrderBookBinary:
 if __name__ == "__main__":
     orderbook = OrderBookBinary()
 
-    # # Proper test
-    # incoming_orders = [
-    #     Order(100, 10, 1, OrderType.BUY),
-    #     Order(105, 5, 2, OrderType.SELL),
-    #     Order(102, 8, 3, OrderType.BUY),
-    #     Order(101, 10, 4, OrderType.SELL),
-    #     Order(101, 5, 5, OrderType.BUY),
-    #     Order(100, 3, 6, OrderType.SELL)
-    # ]
-
-    # Just test adding
     incoming_queries = [
         Order(100, 10, 1, OrderType.BUY),
         Order(100, 5, 2, OrderType.BUY),
         Order(100, 5, 3, OrderType.BUY),
         Order(100, 5, 4, OrderType.BUY),
         Order(100, 5, 5, OrderType.BUY),
-        Order(120, 100, 6, OrderType.SELL), # todo this 105 breaks still
-        Cancel(1),
-        Cancel(5),
-        Cancel(4),
-        Order(105, 15, 7, OrderType.BUY),
-        Order(110, 5, 8, OrderType.BUY),
-        Order(110, 10, 9, OrderType.BUY),
-        Order(102, 25, 10, OrderType.SELL),
+        Order(90, 100, 6, OrderType.SELL),
     ]
 
     orderbook.process_queries(incoming_queries)
 
     print(orderbook)
-
-    visualizations.plot_orderbook_depth(orderbook)
